@@ -1,0 +1,11 @@
+---
+- hosts: all
+  tasks:
+  - import_role:
+      name: base
+  - import_role:
+      name: docker
+  - import_role:
+      name: kubernetes
+  - import_role:
+      name: vault

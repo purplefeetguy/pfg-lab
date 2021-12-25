@@ -1,0 +1,16 @@
+---
+# tasks file for base
+  # Enable Strong security for Powershell (required for NuGet Provider)
+  - name: Enable TLS 1.2 for 64-bit .Net Framework
+    win_regedit:
+      path: HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NetFramework\v4.0.30319
+      name: SchUseStrongCrypto
+      data: 1
+      type: dword
+
+  - name: Enable TLS 1.2 for 32-bit .Net Framework
+    win_regedit:
+      path: HKLM:\SOFTWARE\Microsoft\.NetFramework\v4.0.30319
+      name: SchUseStrongCrypto
+      data: 1
+      type: dword

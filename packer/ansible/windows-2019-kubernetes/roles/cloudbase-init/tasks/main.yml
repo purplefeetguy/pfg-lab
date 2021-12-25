@@ -1,0 +1,18 @@
+---
+# tasks file for cloudbase-init
+  - name: Get Cloudbase-Init
+    win_get_url:
+      url: https://cloudbase.it/downloads/CloudbaseInitSetup_x64.msi
+      dest: C:\Users\Administrator\cloudbase-init.msi
+
+  - name: Install Cloudbase-Init
+    win_package:
+      path: C:\Users\Administrator\cloudbase-init.msi
+
+  - name: Add Cloudbase Init config files
+    win_copy:
+      src: "{{ item }}"
+      dest: "C:\\Program Files\\Cloudbase Solutions\\cloudbase-init\\conf\\{{ item }}"
+    loop:
+      - cloudbase-init.conf
+      - cloudbase-init-unattend.conf

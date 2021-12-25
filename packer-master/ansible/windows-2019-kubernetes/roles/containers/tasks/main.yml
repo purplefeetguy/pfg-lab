@@ -1,0 +1,38 @@
+---
+# tasks file for containers
+  # Enable Containers feature
+  - name: features | Enabling Containers Feature
+    win_feature:
+      name: Containers
+      state: present
+    register: windows_container_feature
+
+  - name: reboot | Rebooting Server
+    win_reboot:
+      reboot_timeout_sec: 3600
+    when: windows_container_feature.changed
+
+  # Enable Docker for Windows
+  - name: Add Nuget Package provider
+    win_shell: Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+
+  - name: Install Docker Powershell Module Repository for Windows
+    win_psmodule:
+      name: DockerMsftProvider
+      state: present
+
+  - name: Install Docker for Windows
+    win_shell: Install-Package -Name docker -ProviderName DockerMsftProvider -Force
+    register: docker_installed
+
+  - name: Enable Docker service
+    win_service:
+      name: docker
+      start_mode: auto
+      state: started
+    when: docker_installed.changed
+
+  - name: Reboot Windows
+    win_reboot:
+      reboot_timeout_sec: 3600
+    when: docker_installed.changed

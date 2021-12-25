@@ -1,0 +1,7 @@
+---
+# tasks file for vault
+- name: Install vault
+  win_chocolatey:
+    name: 
+    - vault
+    state: present

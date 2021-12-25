@@ -1,0 +1,83 @@
+---
+# tasks file for kubernetes
+- name: Create Kubernetes directory
+  win_file:
+    path: C:\k
+    state: directory
+
+- name: Add Kubernetes directory to path
+  ansible.windows.win_path:
+    elements:
+      - 'C:\k'
+
+- name: Download kubelet
+  win_get_url:
+    url: https://dl.k8s.io/{{ kubernetes_version }}/bin/windows/amd64/kubelet.exe
+    dest: C:\k\kubelet.exe
+
+- name: Download kubeadm
+  win_get_url:
+    url: https://dl.k8s.io/{{ kubernetes_version }}/bin/windows/amd64/kubeadm.exe
+    dest: C:\k\kubeadm.exe
+
+- name: Download wins
+  win_get_url:
+    url: https://github.com/rancher/wins/releases/download/v0.0.4/wins.exe 
+    dest: C:\k\wins.exe
+
+- name: Create Docker host network
+  ansible.windows.win_shell: docker network create -d nat host
+
+- name: Create wins service
+  ansible.windows.win_shell: wins.exe srv app run --register
+
+- name: Start wins service
+  ansible.windows.win_service:
+    name: rancher-wins
+    state: restarted
+
+- name: Create other Kubernetes (and related) directories
+  win_file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - 'C:\var\log\kubelet'
+    - 'C:\var\lib\kubelet\etc\kubernetes'
+    - 'C:\etc\kubernetes\pki'
+    - 'C:\Program Files\nssm'
+    - 'C:\tmp'
+
+- name: Symbolic Link for PKI directory
+  ansible.windows.win_shell: New-Item -path C:\var\lib\kubelet\etc\kubernetes\pki -type SymbolicLink -value C:\etc\kubernetes\pki\
+
+- name: Download nssm
+  win_get_url:
+    url: https://k8stestinfrabinaries.blob.core.windows.net/nssm-mirror/nssm-2.24.zip 
+    dest: "C:\\nssm.zip"
+
+- name: Unzip nssm
+  community.windows.win_unzip:
+    src: "C:\\nssm.zip"
+    dest: "C:\\tmp"
+
+- name: Move nssm executable to correct location
+  win_copy:
+    src: "C:\\tmp\\nssm-2.24\\win64\\nssm.exe"
+    dest: "C:\\Program Files\\nssm\\nssm.exe"
+    remote_src: true
+
+- name: Add NSSM directory to path
+  ansible.windows.win_path:
+    elements:
+      - "C:\\Program Files\\nssm\\"
+
+- name: Create Kubelet firewall rule
+  community.windows.win_firewall_rule:
+    name: Kubelet
+    localport: 10250
+    action: allow
+    direction: in
+    protocol: tcp
+    state: present
+    enabled: yes
+

@@ -1,0 +1,70 @@
+{
+  "builders": [
+    {
+      "type": "qemu",
+      "accelerator": "kvm",
+      "communicator": "winrm",
+      "format":"qcow2",
+      "cpus": "2",
+      "disk_size": "51200",
+      "disk_interface":"virtio",
+      "floppy_files": [
+        "http/windows-2019/Autounattend.xml",
+        "scripts/win-common/SetUpWinRM.ps1"
+      ],
+      "qemuargs": [
+        [
+          "-drive",
+          "file=artifacts/qemu/win2019-kube/{{ .Name }},if=virtio,cache=writeback,discard=ignore,format=qcow2,index=1"
+        ],
+        [
+          "-drive",
+          "file=isos/17763.737.190906-2324.rs5_release_svc_refresh_SERVER_EVAL_x64FRE_en-us_1.iso,media=cdrom,index=2"
+        ],
+        [
+          "-drive",
+          "file=isos/virtio-win.iso,media=cdrom,index=3"
+        ]
+      ],
+      "headless": true,
+      "vnc_bind_address": "0.0.0.0",
+      "iso_checksum": "549bca46c055157291be6c22a3aaaed8330e78ef4382c99ee82c896426a1cee1",
+      "iso_url": "https://software-download.microsoft.com/download/pr/17763.737.190906-2324.rs5_release_svc_refresh_SERVER_EVAL_x64FRE_en-us_1.iso",
+      "iso_target_path": "isos/17763.737.190906-2324.rs5_release_svc_refresh_SERVER_EVAL_x64FRE_en-us_1.iso",
+      "memory": "4096",
+      "output_directory": "artifacts/qemu/win2019-kube",
+      "shutdown_command": "shutdown /s /t 30 /f",
+      "shutdown_timeout": "15m",
+      "vm_name": "windows-server-2019-standard-x64-eval",
+      "winrm_password": "adm!nadm!n",
+      "winrm_username": "Administrator",
+      "winrm_timeout": "2h",
+      "winrm_insecure": true,
+      "winrm_use_ssl": true
+    }
+  ],
+  "provisioners": [
+    {
+     "type": "ansible",
+     "extra_arguments": [
+       "-e",
+       "kubernetes_version=v1.19.1",
+       "-e",
+       "ansible_shell_type=powershell",
+       "-e",
+       "ansible_shell_executable=None",
+       "-e",
+       "ansible_winrm_server_cert_validation=ignore"
+     ],
+     "use_proxy": false,
+     "playbook_file": "ansible/windows-2019-kubernetes/main.yml",
+     "user": "Administrator"
+    },
+    {
+      "type": "powershell",
+      "inline": [
+        "C:\\Windows\\System32\\Sysprep\\sysprep.exe /quiet /generalize /oobe  /unattend:C:\\Program Files\\Cloudbase Solutions\\Cloudbase-Init\\conf\\Unattend.xml"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+---
+# tasks file for kubernetes
+- name: Add Kubernetes Repository key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main 
+    state: present
+
+- name: Install Kubernetes
+  package:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl 
+    state: present
+    update_cache: yes
+
+- name: Disable Swap
+  shell: |
+    swapoff -a
+
+- name: Remove swap in fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+    replace: '# \1'
+
+- name: Bridge NF Filter sysctl IPv4
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    state: present
+
+- name: Bridge NF Filter sysctl IPv6
+  ansible.posix.sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    state: present

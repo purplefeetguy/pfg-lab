@@ -1,0 +1,13 @@
+---
+- hosts: all
+  tasks:
+  - import_role:
+      name: base
+  - import_role:
+      name: containers
+  - import_role:
+      name: kubernetes
+  - import_role:
+      name: cloudbase-init
+  - import_role:
+      name: vault
